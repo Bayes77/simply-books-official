@@ -1,5 +1,44 @@
-import React from 'react';
+'use client';
 
-export default function page() {
-  return <div />;
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
+import { viewAuthorDetails } from '../../../api/mergedData';
+import { getAuthorBooks } from '../../../api/authorData';
+import BookCard from '../../../components/BookCard';
+
+export default function ViewAuthor({ params }) {
+  const [authorDetails, setAuthorDetails] = useState({});
+  const [books, setBooks] = useState([]);
+  const { firebaseKey } = params;
+
+  // *make api call to get the data
+  useEffect(() => {
+    viewAuthorDetails(firebaseKey).then(setAuthorDetails);
+    getAuthorBooks(firebaseKey).then(setBooks);
+  }, [firebaseKey]);
+
+  const getSpecificBooks = () => {
+    getAuthorBooks(firebaseKey).then(setBooks);
+  };
+
+  return (
+    <div className="mt-5 d-flex flex-wrap">
+      <div className="text-white ms-5 details">
+        <h5>
+          {authorDetails.first_name} {authorDetails.last_name}
+        </h5>
+        Author Email: <a href={`mailto:${authorDetails.email}`}>{authorDetails.email}</a>
+        <hr />
+        <div className="d-flex flex-wrap">
+          {books.map((book) => (
+            <BookCard key={book.firebaseKey} bookObj={book} onUpdate={getSpecificBooks} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
+
+ViewAuthor.propTypes = {
+  params: PropTypes.objectOf({}).isRequired,
+};
